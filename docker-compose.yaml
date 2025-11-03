@@ -8,6 +8,26 @@ services:
       POSTGRES_USER: ${DC_DB_USERNAME}
       POSTGRES_DB: ${DC_DB_NAME}
     ports:
-      - ${DC_DB_PORT}:5432
+      - ${DC_DB_PORT}:${DC_DB_LOCAL_PORT}
     volumes:
       - ./postgres-data:/var/lib/postgresql
+
+  inkonpaper:
+    container_name: inkonpaper
+    image: inkonpaper
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      LOCAL_DB_USERNAME: ${DC_DB_USERNAME}
+      LOCAL_DB_PASSWORD: ${DC_DB_PASSWORD}
+      LOCAL_DB_SUBPROTOCOL: ${DC_DB_SUBPROTOCOL}
+      LOCAL_DB_HOST: ${DC_DB_HOST}
+      LOCAL_DB_PORT: 5432
+      LOCAL_DB_NAME: ${DC_DB_NAME}
+      LOCAL_DB_DRIVER: ${DC_DB_DRIVER}
+    ports:
+      - ${DC_APPLICATION_PORT}:${DC_APPLICATION_LOCAL_PORT}
+    depends_on:
+      - postgres

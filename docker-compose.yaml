@@ -4,10 +4,10 @@ services:
     image: postgres:16
     restart: always
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DC_DB_PASSWORD}
+      POSTGRES_USER: ${DC_DB_USERNAME}
+      POSTGRES_DB: ${DC_DB_NAME}
     ports:
-      - ${DB_PORT}:5432
+      - ${DC_DB_PORT}:5432
     volumes:
       - ./postgres-data:/var/lib/postgresql

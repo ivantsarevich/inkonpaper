@@ -8,5 +8,15 @@ spring:
     url: jdbc:${DB_SUBPROTOCOL}://${DB_HOST}:${DB_PORT}/${DB_NAME}
     driver-class-name: ${DB_DRIVER}
 
+  flyway:
+    enabled: ${IS_ACTIVE}
+    validate-on-migrate: ${IS_VALIDATE_ON_MIGRATE}
+    locations: ${MIGRATION_LOCATION}
+
+  jpa:
+    show-sql: ${IS_SHOW_SQL}
+    hibernate:
+      ddl-auto: ${DDL_AUTO}
+
 server:
   port: ${APPLICATION_PORT}

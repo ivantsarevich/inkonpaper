@@ -1,6 +1,22 @@
 spring:
   application:
-    name: ${MAIN_APPLICATION_NAME:inkonpaper}
+    name: "inkonpaper"
 
-  profiles:
-    active: ${MAIN_APPLICATION_PROFILE:local}
+  datasource:
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    url: jdbc:${DB_SUBPROTOCOL}://${DB_HOST:localhost}:${DB_PORT}/${DB_NAME}
+    driver-class-name: ${DB_DRIVER}
+
+  flyway:
+    enabled: ${FLYWAY_ENABLE:true}
+    validate-on-migrate: ${FLYWAY_VALIDATE_ON_MIGRATE:true}
+    locations: ${FLYWAY_LOCATION:classpath:db/migration}
+
+  jpa:
+    show-sql: ${JPA_SHOW_SQL:true}
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:validate}
+
+server:
+  port: ${APPLICATION_PORT:8080}

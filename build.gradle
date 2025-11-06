@@ -38,6 +38,9 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.15.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+    testImplementation 'org.testcontainers:postgresql:1.21.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers:3.5.7'
 }
 
 tasks.named('test') {
@@ -49,7 +52,7 @@ tasks.named("clean") {
         def extraDir = file(".target/")
         if (extraDir.exists()) {
             delete(extraDir)
-            println "✅ Дополнительная папка ${extraDir} удалена"
+            println "Folder ${extraDir} deleted"
         }
     }
 }
@@ -63,17 +66,17 @@ tasks.named('bootJar') {
 
 tasks.register("buildDockerImage") {
     group = "build"
-    description = "Собирает исполняемый Spring Boot JAR и Docker-образ"
+    description = "Builds an executable Spring Boot JAR and Docker image"
 
-    dependsOn("clean", "bootJar")
+    dependsOn("clean", "test", "bootJar")
 
     doLast {
-        println "✅ Boot JAR собран в build/libs"
-
+        println "Boot JAR is built in build/libs"
+        1
         exec {
             commandLine 'docker', 'build', '-t', 'inkonpaper', '.'
         }
 
-        println "🐳 Docker-образ \"inkonpaper\" собран"
+        println "The \"inkonpaper\" Docker image has been built"
     }
 }

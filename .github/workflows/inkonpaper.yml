@@ -1,10 +1,16 @@
 name: inkonpaper.yml
 
 on:
-  [ push ]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
-  build-and-deploy:
+  other_branch:
+    if: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,27 +27,27 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
 
-      - name: Make Gradle Wrapper executable
+      - name: Make Gradlew Wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build Docker image
+      - name: Test Application
         run: |
-          ./gradlew buildDockerImage
+          ./gradlew test
 
       - name: Get latest tag and increment
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "Latest tag: $LAST_TAG"
-          
+
           VERSION=${LAST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          
+
           PATCH=$((PATCH + 1))
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
 
           echo "Create tag: $NEW_TAG"
-          
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a $NEW_TAG -m "Auto tag $NEW_TAG"
-          git push origin $NEW_TAG || echo "Tag alredy exist"
+          git push origin $NEW_TAG || echo "Tag already exist"

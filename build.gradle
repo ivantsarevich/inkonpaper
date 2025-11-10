@@ -63,20 +63,3 @@ tasks.named('bootJar') {
     destinationDirectory = file(".target/")
     mainClass.set('efr.iv.igr.inkonpaper.InkonpaperApplication')
 }
-
-tasks.register("buildDockerImage") {
-    group = "build"
-    description = "Builds an executable Spring Boot JAR and Docker image"
-
-    dependsOn("clean", "test", "bootJar")
-
-    doLast {
-        println "Boot JAR is built in build/libs"
-        1
-        exec {
-            commandLine 'docker', 'build', '-t', 'inkonpaper', '.'
-        }
-
-        println "The \"inkonpaper\" Docker image has been built"
-    }
-}

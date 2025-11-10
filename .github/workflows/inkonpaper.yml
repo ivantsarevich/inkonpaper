@@ -99,3 +99,67 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a $NEW_TAG -m "Auto tag $NEW_TAG"
           git push origin $NEW_TAG || echo "Tag already exist"
+
+  main_branch:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
+
+      - name: Make Gradlew Wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Test Application
+        run: |
+          ./gradlew test
+
+      - name: Build Application in Jar
+        run: |
+          ./gradlew bootJar 
+
+      - name: Get latest tag and increment
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          echo "Latest tag: $LAST_TAG"
+
+          VERSION=${LAST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          MAJOR=$((MAJOR + 1))
+          PATCH=0
+          MINOR=0
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+
+          echo "Create tag: $NEW_TAG"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a $NEW_TAG -m "Auto tag $NEW_TAG"
+          git push origin $NEW_TAG || echo "Tag already exist"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/inkonpaper:$NEW_TAG .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/inkonpaper:$NEW_TAG ${{ secrets.DOCKER_USERNAME }}/inkonpaper:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/inkonpaper:$NEW_TAG
+          docker push ${{ secrets.DOCKER_USERNAME }}/inkonpaper:latest

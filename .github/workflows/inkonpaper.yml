@@ -33,8 +33,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Test Application
-        run: |
-          ./gradlew test
+        run: ./gradlew test
 
       - name: Get latest tag and increment
         run: |
@@ -78,8 +77,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Test Application
-        run: |
-          ./gradlew test
+        run: ./gradlew test
 
       - name: Get latest tag and increment
         run: |
@@ -124,14 +122,13 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Test Application
-        run: |
-          ./gradlew test
+        run: ./gradlew test
 
       - name: Build Application in Jar
-        run: |
-          ./gradlew bootJar 
+        run: ./gradlew bootJar
 
       - name: Get latest tag and increment
+        id: tag
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
           echo "Latest tag: $LAST_TAG"
@@ -140,16 +137,23 @@ jobs:
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
           MAJOR=$((MAJOR + 1))
-          PATCH=0
           MINOR=0
+          PATCH=0
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
 
-          echo "Create tag: $NEW_TAG"
+          echo "New tag: $NEW_TAG"
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a $NEW_TAG -m "Auto tag $NEW_TAG"
-          git push origin $NEW_TAG || echo "Tag already exist"
+          git push origin $NEW_TAG || echo "Tag already exists"
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.new_tag }}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -159,7 +163,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/inkonpaper:$NEW_TAG .
-          docker tag ${{ secrets.DOCKER_USERNAME }}/inkonpaper:$NEW_TAG ${{ secrets.DOCKER_USERNAME }}/inkonpaper:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/inkonpaper:$NEW_TAG
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/inkonpaper:${{ env.new_tag }} .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/inkonpaper:${{ env.new_tag }} ${{ secrets.DOCKER_USERNAME }}/inkonpaper:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/inkonpaper:${{ env.new_tag }}
           docker push ${{ secrets.DOCKER_USERNAME }}/inkonpaper:latest
